@@ -11,7 +11,7 @@ interface DigitCharacterProps {
   size?: number
 }
 
-const stateAnimations: Record<DigitState, object> = {
+const stateAnimations: Record<DigitState, Record<string, unknown>> = {
   idle: {
     y: [0, -6, 0],
     transition: { repeat: Infinity, duration: 3, ease: 'easeInOut' },
@@ -54,7 +54,7 @@ export function DigitCharacter({ form, state, color, size = 200 }: DigitCharacte
 
   return (
     <motion.div
-      animate={stateAnimations[state]}
+      animate={stateAnimations[state] as import('framer-motion').TargetAndTransition}
       style={{ width: size, height: size }}
       className="relative"
     >

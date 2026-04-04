@@ -13,8 +13,8 @@ interface StoryBeat {
   emoji: string
   action: string
   animation: {
-    animate: object
-    transition: object
+    animate?: import('framer-motion').TargetAndTransition
+    transition?: import('framer-motion').Transition
   }
 }
 
