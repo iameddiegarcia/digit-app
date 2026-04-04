@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+:root {
+  --santi-primary: #60A5FA;
+  --santi-accent: #3B82F6;
+  --santi-dark: #2563EB;
+  --emily-primary: #F9A8D4;
+  --emily-accent: #EC4899;
+  --gold: #FFD700;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+body {
+  position: fixed;
+  width: 100%;
+}
