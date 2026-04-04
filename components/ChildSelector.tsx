@@ -22,7 +22,7 @@ const CHILDREN: ChildOption[] = [
     id: '00000000-0000-0000-0000-000000000020',
     nickname: 'Emily',
     color: '#F9A8D4',
-    available: false, // TBD — Emily's Kitty form not yet implemented
+    available: true, // uses Round Bot in light pink; Kitty SVG added later
   },
 ]
 
