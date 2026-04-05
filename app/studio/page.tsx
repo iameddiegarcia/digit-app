@@ -40,7 +40,9 @@ export default function StudioPage() {
     ? creations
     : activeFilter === 'published'
       ? creations.filter((c) => c.status === 'published')
-      : creations.filter((c) => c.type === activeFilter)
+      : activeFilter === 'review'
+        ? creations.filter((c) => c.status === 'review')
+        : creations.filter((c) => c.type === activeFilter)
 
   return (
     <div>

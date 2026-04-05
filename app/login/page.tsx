@@ -74,7 +74,7 @@ export default function LoginPage() {
           >
             {/* Eddie - Parent */}
             <motion.button
-              onClick={() => setLoginTarget('eddie')}
+              onClick={() => { setLoginTarget('eddie'); setEmail('eddie@garciafamily.app') }}
               className="flex items-center gap-6 p-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-colors w-80"
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -92,7 +92,7 @@ export default function LoginPage() {
 
             {/* Kylie - Creator */}
             <motion.button
-              onClick={() => setLoginTarget('kylie')}
+              onClick={() => { setLoginTarget('kylie'); setEmail('kylie@garciafamily.app') }}
               className="flex items-center gap-6 p-6 rounded-2xl bg-green-500/10 border border-green-500/20 hover:bg-green-500/20 transition-colors w-80"
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -176,14 +176,7 @@ export default function LoginPage() {
               {loginTarget === 'eddie' ? "Dad's Dashboard" : "Kylie's Lily Pad"}
             </div>
 
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-white/30"
-              autoFocus
-            />
+            <input type="hidden" value={email} />
 
             <input
               type="password"

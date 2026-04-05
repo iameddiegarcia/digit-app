@@ -30,12 +30,18 @@ export async function PATCH(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { creationId, status } = await request.json()
+  const { creationId, status, reviewNote } = await request.json()
   if (!creationId || !status) return NextResponse.json({ error: 'creationId and status required' }, { status: 400 })
+
+  const updatePayload: Record<string, unknown> = {
+    status,
+    updated_at: new Date().toISOString(),
+  }
+  if (reviewNote) updatePayload.review_note = reviewNote
 
   const { error } = await supabase
     .from('creations')
-    .update({ status, updated_at: new Date().toISOString() })
+    .update(updatePayload)
     .eq('id', creationId)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

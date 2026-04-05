@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { TraitRadar } from '@/components/dashboard/TraitRadar'
+import { ChildOverviewCard } from '@/components/dashboard/ChildOverviewCard'
 import { ActivityFinder } from '@/components/dashboard/ActivityFinder'
 
 interface ChildData {
@@ -12,6 +12,14 @@ interface ChildData {
   nickname: string
   color: string
   traits: { trait: string; level: number; trend: string; confidence: number }[]
+  lastSessionAt?: string | null
+}
+
+interface ReviewCreation {
+  id: string
+  title: string
+  type: string
+  created_at: string
 }
 
 const CHILD_COLORS: Record<string, string> = {
@@ -23,6 +31,7 @@ const CHILD_COLORS: Record<string, string> = {
 export default function DashboardOverview() {
   const router = useRouter()
   const [children, setChildren] = useState<ChildData[]>([])
+  const [reviewQueue, setReviewQueue] = useState<ReviewCreation[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -31,87 +40,101 @@ export default function DashboardOverview() {
 
   async function loadData() {
     try {
-      const childRes = await fetch('/api/dashboard/children')
-      if (!childRes.ok) { setLoading(false); return }
-      const { children: kids } = await childRes.json()
+      const [childRes, reviewRes] = await Promise.all([
+        fetch('/api/dashboard/children'),
+        fetch('/api/dashboard/review'),
+      ])
 
-      const withTraits = await Promise.all(
-        (kids ?? []).map(async (child: { id: string; name: string; nickname: string; digit_config: { color?: string } }) => {
-          const traitRes = await fetch(`/api/dashboard/traits?childId=${child.id}`)
-          const traitData = traitRes.ok ? await traitRes.json() : { traits: [] }
-          return {
-            id: child.id,
-            name: child.name,
-            nickname: child.nickname,
-            color: child.digit_config?.color || CHILD_COLORS[child.id] || '#60A5FA',
-            traits: traitData.traits ?? [],
-          }
-        })
-      )
+      if (childRes.ok) {
+        const { children: kids } = await childRes.json()
 
-      setChildren(withTraits)
-    } catch { /* ignore */ }
+        const withTraits = await Promise.all(
+          (kids ?? []).map(async (child: { id: string; name: string; nickname: string; digit_config: { color?: string } }) => {
+            const [traitRes, sessionRes] = await Promise.all([
+              fetch(`/api/dashboard/traits?childId=${child.id}`),
+              fetch(`/api/dashboard/sessions?childId=${child.id}&limit=1`),
+            ])
+            const traitData = traitRes.ok ? await traitRes.json() : { traits: [] }
+            const sessionData = sessionRes.ok ? await sessionRes.json() : { sessions: [] }
+            return {
+              id: child.id,
+              name: child.name,
+              nickname: child.nickname,
+              color: child.digit_config?.color || CHILD_COLORS[child.id] || '#60A5FA',
+              traits: traitData.traits ?? [],
+              lastSessionAt: sessionData.sessions?.[0]?.started_at ?? null,
+            }
+          })
+        )
+        setChildren(withTraits)
+      }
+
+      if (reviewRes.ok) {
+        const data = await reviewRes.json()
+        setReviewQueue(data.creations ?? [])
+      }
+    } catch {
+      /* ignore */
+    }
     setLoading(false)
   }
 
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+
   if (loading) {
-    return <div className="text-slate-500 text-sm">Loading dashboard...</div>
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
   }
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-white">Family Overview</h2>
-        <div className="flex gap-3">
-          <button
-            onClick={() => router.push('/dashboard/review')}
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors"
-          >
-            Review Creations
-          </button>
-        </div>
-      </div>
+      {/* Greeting */}
+      <motion.div
+        className="mb-8"
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <h2 className="text-2xl font-bold text-white">Hey Eddie</h2>
+        <p className="text-sm text-slate-500 mt-1">{today}</p>
+      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Review Queue Banner */}
+      {reviewQueue.length > 0 && (
+        <motion.button
+          onClick={() => router.push('/dashboard/review')}
+          className="w-full mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 hover:border-green-500/30 transition-colors text-left"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-green-400">Review Queue</span>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                {reviewQueue.length} creation{reviewQueue.length !== 1 ? 's' : ''} from Kylie waiting for review
+              </p>
+            </div>
+            <span className="text-green-400 text-lg">&rarr;</span>
+          </div>
+        </motion.button>
+      )}
+
+      {/* Child Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         {children.map((child, i) => (
-          <motion.button
+          <ChildOverviewCard
             key={child.id}
-            onClick={() => router.push(`/dashboard/child/${child.id}`)}
-            className="text-left p-5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition-colors"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: child.color + '30', color: child.color }}>
-                {child.nickname[0]}
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-white">{child.nickname}</h3>
-                <p className="text-[10px] text-slate-500">{child.name}</p>
-              </div>
-            </div>
-
-            <div className="flex justify-center">
-              <TraitRadar traits={child.traits} color={child.color} size={160} />
-            </div>
-
-            {/* Trend summary */}
-            <div className="flex gap-2 mt-3 flex-wrap">
-              {child.traits.map((t) => (
-                <span
-                  key={t.trait}
-                  className={`text-[10px] px-2 py-0.5 rounded-full ${
-                    t.trend === 'improving' ? 'bg-green-500/10 text-green-400' :
-                    t.trend === 'declining' ? 'bg-red-500/10 text-red-400' :
-                    'bg-slate-800 text-slate-500'
-                  }`}
-                >
-                  {t.trait.replace('_', ' ')} {t.trend === 'improving' ? '\u2191' : t.trend === 'declining' ? '\u2193' : '\u2192'}
-                </span>
-              ))}
-            </div>
-          </motion.button>
+            id={child.id}
+            nickname={child.nickname}
+            name={child.name}
+            color={child.color}
+            traits={child.traits}
+            lastSessionAt={child.lastSessionAt}
+            index={i}
+          />
         ))}
       </div>
 

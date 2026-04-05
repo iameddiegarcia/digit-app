@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { TraitRadar } from '@/components/dashboard/TraitRadar'
 import { TraitTrendCard } from '@/components/dashboard/TraitTrendCard'
 import { SessionSummaryCard } from '@/components/dashboard/SessionSummaryCard'
-import { ParentObservation } from '@/components/dashboard/ParentObservation'
+import { ParentObservationForm } from '@/components/dashboard/ParentObservationForm'
 import type { Trait } from '@/lib/types'
 
 interface TraitProfile {
@@ -122,9 +122,17 @@ export default function ChildDetailPage() {
         )}
       </div>
 
+      {/* Weekly Goals */}
+      <div className="mt-8">
+        <div className="p-4 rounded-xl bg-slate-900/40 border border-dashed border-slate-800">
+          <h3 className="text-xs font-semibold text-slate-600 mb-1">Weekly Goals</h3>
+          <p className="text-[11px] text-slate-700">Goal tracking coming soon -- Digit will suggest focus areas based on trait trends.</p>
+        </div>
+      </div>
+
       {/* Parent Observation */}
       <div className="mt-8">
-        <ParentObservation childId={childId} />
+        <ParentObservationForm childId={childId} />
       </div>
     </div>
   )
