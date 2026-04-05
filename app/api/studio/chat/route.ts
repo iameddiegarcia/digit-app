@@ -24,16 +24,18 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { messages, storyContext } = body as {
+  const { messages, storyContext, ...extraContext } = body as {
     messages: { role: 'user' | 'assistant'; content: string }[]
-    storyContext?: { title?: string; nodeCount?: number; currentNodeText?: string }
+    storyContext?: Record<string, unknown>
+    [key: string]: unknown
   }
 
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json({ error: 'Messages required' }, { status: 400 })
   }
 
-  const { system, messages: formattedMessages } = buildStudioMessages(messages, storyContext)
+  const context = storyContext ?? (Object.keys(extraContext).length > 0 ? extraContext : undefined)
+  const { system, messages: formattedMessages } = buildStudioMessages(messages, context as Record<string, unknown> | undefined)
 
   const stream = anthropic.messages.stream({
     model: 'claude-sonnet-4-20250514',

@@ -1,5 +1,8 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import Anthropic from '@anthropic-ai/sdk'
 import { NextResponse, type NextRequest } from 'next/server'
+
+const anthropic = new Anthropic()
 
 export async function GET(
   _request: NextRequest,
@@ -47,5 +50,51 @@ export async function PATCH(
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Auto-generate review summary when submitted for review
+  if (body.status === 'review' && creation) {
+    generateReviewNotes(supabase, creation).catch(() => {})
+  }
+
   return NextResponse.json({ creation })
+}
+
+async function generateReviewNotes(
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
+  creation: Record<string, unknown>
+) {
+  const prompt = `You are reviewing a creation made by Kylie (age 10) for her younger siblings in the Digit family development system.
+
+Creation type: ${creation.type}
+Title: ${creation.title}
+Primary trait: ${creation.primary_trait || 'none selected'}
+Target ages: ${creation.target_age_min}-${creation.target_age_max}
+Content: ${JSON.stringify(creation.content)}
+
+Provide a brief review for Eddie (the parent) covering:
+1. **Trait Assessment** — Which developmental trait(s) does this exercise? How well?
+2. **Age Appropriateness** — Is this suitable for the target age? Any concerns?
+3. **Suggested Improvements** — 1-2 specific things that could make it better
+
+Keep it concise (3-5 sentences total). Be encouraging — Kylie is 10 and learning.`
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 300,
+      messages: [{ role: 'user', content: prompt }],
+    })
+
+    const reviewNotes = response.content
+      .filter((c) => c.type === 'text')
+      .map((c) => c.text)
+      .join('')
+
+    await supabase
+      .from('creations')
+      .update({ review_notes: reviewNotes })
+      .eq('id', creation.id)
+  } catch {
+    // Review note generation is best-effort
+  }
 }

@@ -10,15 +10,15 @@ interface NavItem {
 }
 
 const CREATE_ITEMS: NavItem[] = [
-  { label: 'Story Builder', href: '/studio/stories/new', icon: 'S' },
-  { label: 'Activity Designer', href: '/studio/activities/new', icon: 'A' },
-  { label: 'Outfit Designer', href: '/studio/outfits/new', icon: 'O' },
+  { label: 'Story Builder', href: '/studio/stories/new', icon: '📖' },
+  { label: 'Activity Designer', href: '/studio/activities/new', icon: '🎨' },
+  { label: 'Puzzle Creator', href: '/studio/puzzles/new', icon: '🧩' },
 ]
 
 const LEARN_ITEMS: NavItem[] = [
-  { label: 'Writing Lab', href: '/studio/learn/writing', icon: 'W' },
-  { label: 'Design Basics', href: '/studio/learn/design', icon: 'D' },
-  { label: 'How Things Work', href: '/studio/learn/how-things-work', icon: 'H' },
+  { label: 'Writing Lab', href: '/studio/learn/writing', icon: '✏️' },
+  { label: 'Design Basics', href: '/studio/learn/design', icon: '🎨' },
+  { label: 'How Things Work', href: '/studio/learn/how-things-work', icon: '⚙️' },
 ]
 
 const PUBLISHED_ITEMS: NavItem[] = [
