@@ -24,7 +24,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-slate-950 text-white min-h-screen overflow-hidden touch-manipulation`}>
+      <body className={`${inter.className} bg-slate-950 text-white min-h-screen touch-manipulation`}>
         <AuthProvider>
           {children}
         </AuthProvider>

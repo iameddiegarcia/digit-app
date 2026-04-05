@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/auth/AuthProvider'
@@ -11,6 +11,11 @@ type LoginTarget = 'eddie' | 'kylie' | null
 export default function LoginPage() {
   const { supabase } = useAuth()
   const router = useRouter()
+
+  useEffect(() => {
+    document.body.classList.add('scroll-lock')
+    return () => document.body.classList.remove('scroll-lock')
+  }, [])
   const [loginTarget, setLoginTarget] = useState<LoginTarget>(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

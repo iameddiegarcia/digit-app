@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { DigitCharacter } from '@/components/digit/DigitCharacter'
@@ -28,6 +29,11 @@ const CHILDREN: ChildOption[] = [
 
 export function ChildSelector() {
   const router = useRouter()
+
+  useEffect(() => {
+    document.body.classList.add('scroll-lock')
+    return () => document.body.classList.remove('scroll-lock')
+  }, [])
 
   function handleSelect(child: ChildOption) {
     if (!child.available) return

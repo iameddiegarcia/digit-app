@@ -11,13 +11,14 @@
 
 html, body {
   height: 100%;
-  overflow: hidden;
   overscroll-behavior: none;
-  -webkit-user-select: none;
-  user-select: none;
 }
 
-body {
+/* Scroll lock for full-screen play pages only */
+.scroll-lock {
+  overflow: hidden;
   position: fixed;
   width: 100%;
+  -webkit-user-select: none;
+  user-select: none;
 }
