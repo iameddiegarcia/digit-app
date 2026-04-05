@@ -9,12 +9,23 @@ export async function GET(request: NextRequest) {
   const childId = request.nextUrl.searchParams.get('childId')
   if (!childId) return NextResponse.json({ error: 'childId required' }, { status: 400 })
 
-  const { data: traits, error } = await supabase
-    .from('child_trait_profiles')
-    .select('trait, current_level, confidence, trend')
-    .eq('child_id', childId)
+  let traits, error
+  try {
+    const result = await supabase
+      .from('child_trait_profiles')
+      .select('trait, current_level, confidence, trend')
+      .eq('child_id', childId)
+    traits = result.data
+    error = result.error
+  } catch (e) {
+    console.error('Traits query exception:', e)
+    return NextResponse.json({ error: String(e) }, { status: 500 })
+  }
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('Traits query error:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
 
   return NextResponse.json({
     traits: (traits ?? []).map((t) => ({
