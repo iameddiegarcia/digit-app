@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { TraitRadar } from '@/components/dashboard/TraitRadar'
+import { TraitProgressBars } from '@/components/dashboard/TraitProgressBars'
 import { CharacterRadar } from '@/components/dashboard/CharacterRadar'
-import { TraitTrendCard } from '@/components/dashboard/TraitTrendCard'
 import { SessionSummaryCard } from '@/components/dashboard/SessionSummaryCard'
 import { ParentObservationForm } from '@/components/dashboard/ParentObservationForm'
 import { CharacterObservationForm } from '@/components/dashboard/CharacterObservationForm'
@@ -102,25 +101,7 @@ export default function ChildDetailPage() {
         <h3 className="text-sm font-semibold text-white mb-0.5">Learning Progress</h3>
         <p className="text-[10px] text-slate-500 mb-3">From play sessions — grows as {meta.name} plays activities</p>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Radar */}
-        <div className="lg:col-span-1 flex justify-center">
-          <TraitRadar traits={radarTraits} color={meta.color} size={240} />
-        </div>
-
-        {/* Trait Cards */}
-        <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {traits.map((t) => (
-            <TraitTrendCard
-              key={t.trait}
-              trait={t.trait}
-              level={t.level}
-              trend={t.trend}
-              confidence={t.confidence}
-            />
-          ))}
-        </div>
-      </div>
+      <TraitProgressBars traits={radarTraits} color={meta.color} />
 
       {/* Character Formation — Fruit of the Spirit */}
       <div className="mt-8">
