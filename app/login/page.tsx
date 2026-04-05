@@ -28,7 +28,7 @@ export default function LoginPage() {
     })
 
     if (authError) {
-      setError(authError.message)
+      setError(`${authError.message} (email: ${email})`)
       setLoading(false)
       return
     }
@@ -176,7 +176,13 @@ export default function LoginPage() {
               {loginTarget === 'eddie' ? "Dad's Dashboard" : "Kylie's Lily Pad"}
             </div>
 
-            <input type="hidden" value={email} />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white/50 focus:outline-none focus:border-white/30"
+              readOnly
+            />
 
             <input
               type="password"
@@ -184,6 +190,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-white/30"
+              autoFocus
             />
 
             {error && (
