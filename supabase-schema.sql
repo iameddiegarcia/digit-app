@@ -72,7 +72,7 @@ CROSS JOIN (
          ('responsibility'), ('real_world'), ('adaptability')
 ) AS t(trait);
 
--- Function to increment trait scores (upsert)
+-- Function to increment trait scores (upsert) — LEGACY, kept for Phase 1 compat
 CREATE OR REPLACE FUNCTION increment_trait_score(
   p_child_id UUID,
   p_trait trait_type,
@@ -87,3 +87,97 @@ BEGIN
     updated_at = NOW();
 END;
 $$ LANGUAGE plpgsql;
+
+-- ============================================================================
+-- TRAIT INTELLIGENCE ENGINE — Phase 2 Tables
+-- ============================================================================
+
+-- Child trait profiles: replaces simple trait_scores with levels + confidence
+CREATE TABLE child_trait_profiles (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  child_id UUID REFERENCES children(id) ON DELETE CASCADE,
+  trait trait_type NOT NULL,
+  current_level INTEGER DEFAULT 0 CHECK (current_level BETWEEN 0 AND 5),
+  confidence NUMERIC DEFAULT 0.0,
+  trend TEXT CHECK (trend IN ('improving', 'stable', 'declining')) DEFAULT 'stable',
+  last_evidence_at TIMESTAMPTZ,
+  UNIQUE (child_id, trait)
+);
+
+-- Activity attempts: detailed per-attempt signal tracking
+CREATE TABLE activity_attempts (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  session_id UUID REFERENCES sessions(id) ON DELETE CASCADE,
+  child_id UUID REFERENCES children(id) ON DELETE CASCADE,
+  activity_id TEXT NOT NULL,
+  primary_trait trait_type NOT NULL,
+  level_target INTEGER DEFAULT 1,
+  attempts INTEGER DEFAULT 0,
+  hints INTEGER DEFAULT 0,
+  completion_time_seconds INTEGER,
+  accuracy NUMERIC,
+  independence NUMERIC,
+  persistence NUMERIC,
+  flexibility NUMERIC,
+  abandoned BOOLEAN DEFAULT FALSE,
+  completed_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Evidence events: every scored observation logged
+CREATE TABLE trait_evidence_events (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  child_id UUID REFERENCES children(id) ON DELETE CASCADE,
+  trait trait_type NOT NULL,
+  evidence_score NUMERIC NOT NULL,
+  level_observed INTEGER NOT NULL CHECK (level_observed BETWEEN 0 AND 5),
+  activity_attempt_id UUID REFERENCES activity_attempts(id),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Parent observations: manual notes from Eddie
+CREATE TABLE parent_observations (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  child_id UUID REFERENCES children(id) ON DELETE CASCADE,
+  trait trait_type,
+  notes TEXT NOT NULL,
+  verified BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Self-improvement loop: learning patterns per child
+CREATE TABLE child_learning_patterns (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  child_id UUID REFERENCES children(id) ON DELETE CASCADE,
+  pattern_type TEXT NOT NULL,
+  trait trait_type,
+  observation TEXT NOT NULL,
+  hypothesis TEXT,
+  adaptation_applied TEXT,
+  evidence_before NUMERIC,
+  evidence_after NUMERIC,
+  confidence NUMERIC DEFAULT 0.0,
+  verified BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Session reflections: Haiku post-session analysis
+CREATE TABLE session_reflections (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  session_id UUID REFERENCES sessions(id) ON DELETE CASCADE,
+  child_id UUID REFERENCES children(id) ON DELETE CASCADE,
+  observations JSONB NOT NULL,
+  hypotheses JSONB,
+  adaptations_recommended JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Seed child_trait_profiles for all Garcia kids (all start at level 0)
+INSERT INTO child_trait_profiles (child_id, trait, current_level, confidence, trend)
+SELECT c.id, t.trait, 0, 0.0, 'stable'
+FROM children c
+CROSS JOIN (
+  VALUES ('understanding'::trait_type), ('organizing'), ('problem_solving'),
+         ('responsibility'), ('real_world'), ('adaptability')
+) AS t(trait)
+ON CONFLICT (child_id, trait) DO NOTHING;
