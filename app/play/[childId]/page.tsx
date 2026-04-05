@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { ActivityPicker } from '@/components/ActivityPicker'
 import { ColorExplorer } from '@/components/activities/ColorExplorer'
 import { ShapeBuilder } from '@/components/activities/ShapeBuilder'
@@ -52,12 +52,6 @@ export default function PlayPage() {
   const router = useRouter()
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
   const [phase, setPhase] = useState<Phase>('pick')
-
-  // Lock scrolling on play pages (full-screen games)
-  useEffect(() => {
-    document.body.classList.add('scroll-lock')
-    return () => document.body.classList.remove('scroll-lock')
-  }, [])
 
   const child = CHILD_MAP[params.childId]
 

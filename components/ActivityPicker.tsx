@@ -27,7 +27,7 @@ export function ActivityPicker({ childName, childColor, childAge, onSelect }: Ac
   const activities = childAge != null ? getActivitiesForAge(childAge) : ACTIVITIES
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-10 px-8">
+    <div className="flex flex-col items-center gap-10 px-8 py-12 min-h-screen">
       <motion.h1
         className="text-3xl font-bold text-white/90"
         initial={{ opacity: 0, y: -20 }}
@@ -38,12 +38,12 @@ export function ActivityPicker({ childName, childColor, childAge, onSelect }: Ac
         <span style={{ color: childColor }}>{childName}</span>?
       </motion.h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-2xl">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full max-w-2xl">
         {activities.map((activity, index) => (
           <motion.button
             key={activity.id}
             onClick={() => onSelect(activity)}
-            className="flex flex-col items-center gap-3 p-8 rounded-3xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+            className="flex flex-col items-center gap-2 p-5 sm:p-8 rounded-3xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 + index * 0.1 }}
