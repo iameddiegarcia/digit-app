@@ -7,11 +7,12 @@ export async function GET(req: NextRequest) {
 
   const supabase = await createServerSupabaseClient()
   const { data, error } = await supabase
-    .from('character_trait_profiles')
-    .select('*')
-    .eq('child_id', childId)
-    .order('trait')
+    .rpc('get_character_traits', { p_child_id: childId })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('Character traits RPC error:', JSON.stringify(error))
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
   return NextResponse.json({ traits: data })
 }
