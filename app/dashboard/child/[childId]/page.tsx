@@ -8,6 +8,7 @@ import { TraitTrendCard } from '@/components/dashboard/TraitTrendCard'
 import { SessionSummaryCard } from '@/components/dashboard/SessionSummaryCard'
 import { ParentObservationForm } from '@/components/dashboard/ParentObservationForm'
 import { CharacterObservationForm } from '@/components/dashboard/CharacterObservationForm'
+import { CharacterTimeline } from '@/components/dashboard/CharacterTimeline'
 import type { Trait } from '@/lib/types'
 
 interface TraitProfile {
@@ -47,6 +48,7 @@ export default function ChildDetailPage() {
   const [traits, setTraits] = useState<TraitProfile[]>([])
   const [characterTraits, setCharacterTraits] = useState<CharacterProfile[]>([])
   const [sessions, setSessions] = useState<SessionData[]>([])
+  const [refreshKey, setRefreshKey] = useState(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -123,8 +125,9 @@ export default function ChildDetailPage() {
           <div className="flex justify-center">
             <CharacterRadar traits={characterTraits} color={meta.color} size={220} />
           </div>
-          <CharacterObservationForm childId={childId} onSubmit={loadData} />
+          <CharacterObservationForm childId={childId} onSubmit={() => { loadData(); setRefreshKey((k) => k + 1) }} />
         </div>
+        <CharacterTimeline childId={childId} color={meta.color} refreshKey={refreshKey} />
       </div>
 
       {/* Sessions */}
