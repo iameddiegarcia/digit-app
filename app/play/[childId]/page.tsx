@@ -16,6 +16,7 @@ import { Celebration } from '@/components/Celebration'
 import { DigitCharacter } from '@/components/digit/DigitCharacter'
 import { DigitSpeech } from '@/components/digit/DigitSpeech'
 import { ACTIVITIES } from '@/lib/activities'
+import ChoreBoard from '@/components/ChoreBoard'
 import type { Activity } from '@/lib/types'
 
 type Phase = 'pick' | 'greeting' | 'play' | 'celebrate'
@@ -158,11 +159,14 @@ export default function PlayPage() {
   }
 
   return (
-    <ActivityPicker
-      childName={child.name}
-      childColor={child.color}
-      childAge={child.age}
-      onSelect={handleSelectActivity}
-    />
+    <div>
+      <ChoreBoard childId={params.childId} color={child.color} />
+      <ActivityPicker
+        childName={child.name}
+        childColor={child.color}
+        childAge={child.age}
+        onSelect={handleSelectActivity}
+      />
+    </div>
   )
 }

@@ -8,6 +8,7 @@ import { ActivityFinder } from '@/components/dashboard/ActivityFinder'
 import { WorkplaceAssessment } from '@/components/dashboard/WorkplaceAssessment'
 import { SpouseAssessment } from '@/components/dashboard/SpouseAssessment'
 import { SpouseReveal } from '@/components/dashboard/SpouseReveal'
+import ChoreManager from '@/components/dashboard/ChoreManager'
 
 interface ChildData {
   id: string
@@ -242,6 +243,15 @@ export default function DashboardOverview() {
             }}
           />
         )}
+      </div>
+
+      {/* Chores */}
+      <div className="mb-8">
+        <h3 className="text-sm font-semibold text-emerald-400 mb-1">Chores</h3>
+        <p className="text-[10px] text-slate-500 mb-3">
+          Assign chores, track completion, approve with a tap.
+        </p>
+        <ChoreManager />
       </div>
 
       {/* Activity Finder */}
