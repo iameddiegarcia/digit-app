@@ -13,7 +13,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
           supabaseResponse = NextResponse.next({ request })
@@ -25,13 +25,14 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Refresh the session (important for token rotation)
+  // Refresh the session
   const { data: { user } } = await supabase.auth.getUser()
 
   const pathname = request.nextUrl.pathname
 
   // /login — redirect if already logged in
   if (pathname === '/login' && user) {
+    // Try to get role for smart redirect
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -45,41 +46,16 @@ export async function middleware(request: NextRequest) {
     if (role === 'parent') {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
+    // If profile not found, let them through to login page anyway
   }
 
-  // /studio/* — requires auth + creator role
-  if (pathname.startsWith('/studio')) {
+  // /studio/* and /dashboard/* — just require authentication, not role
+  if (pathname.startsWith('/studio') || pathname.startsWith('/dashboard')) {
     if (!user) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.role !== 'creator') {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
   }
 
-  // /dashboard/* — requires auth + parent role
-  if (pathname.startsWith('/dashboard')) {
-    if (!user) {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.role !== 'parent') {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
-  }
-
-  // /play/* and everything else — no auth required
   return supabaseResponse
 }
 

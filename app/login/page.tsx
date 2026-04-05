@@ -33,22 +33,11 @@ export default function LoginPage() {
       return
     }
 
-    // Fetch role to redirect
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-
-      if (profile?.role === 'creator') {
-        router.push('/studio')
-      } else if (profile?.role === 'parent') {
-        router.push('/dashboard')
-      } else {
-        router.push('/')
-      }
+    // Redirect based on which button they clicked — no need to query profiles
+    if (loginTarget === 'kylie') {
+      router.push('/studio')
+    } else {
+      router.push('/dashboard')
     }
   }
 
