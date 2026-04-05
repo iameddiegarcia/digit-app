@@ -1,12 +1,13 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ACTIVITIES } from '@/lib/activities'
+import { getActivitiesForAge, ACTIVITIES } from '@/lib/activities'
 import type { Activity } from '@/lib/types'
 
 interface ActivityPickerProps {
   childName: string
   childColor: string
+  childAge?: number
   onSelect: (activity: Activity) => void
 }
 
@@ -14,9 +15,17 @@ const ACTIVITY_ICONS: Record<string, string> = {
   'color-explorer': '🌈',
   'shape-builder': '🔷',
   'story-tap': '📖',
+  'tap-the-sound': '🔊',
+  'opposite-game': '🔄',
+  'pattern-breaker': '🧩',
+  'sort-it': '📦',
+  'teach-digit': '🎓',
+  'build-puzzle': '🏗️',
 }
 
-export function ActivityPicker({ childName, childColor, onSelect }: ActivityPickerProps) {
+export function ActivityPicker({ childName, childColor, childAge, onSelect }: ActivityPickerProps) {
+  const activities = childAge != null ? getActivitiesForAge(childAge) : ACTIVITIES
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-10 px-8">
       <motion.h1
@@ -30,7 +39,7 @@ export function ActivityPicker({ childName, childColor, onSelect }: ActivityPick
       </motion.h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-2xl">
-        {ACTIVITIES.map((activity, index) => (
+        {activities.map((activity, index) => (
           <motion.button
             key={activity.id}
             onClick={() => onSelect(activity)}
