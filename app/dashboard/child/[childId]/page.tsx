@@ -13,7 +13,7 @@ import type { Trait } from '@/lib/types'
 
 interface TraitProfile {
   trait: Trait
-  current_level: number
+  level: number
   confidence: number
   trend: 'improving' | 'stable' | 'declining'
 }
@@ -82,7 +82,7 @@ export default function ChildDetailPage() {
     return <div className="text-slate-500 text-sm">Loading...</div>
   }
 
-  const radarTraits = traits.map((t) => ({ trait: t.trait, level: t.current_level, trend: t.trend }))
+  const radarTraits = traits.map((t) => ({ trait: t.trait, level: t.level, trend: t.trend }))
 
   return (
     <div>
@@ -97,6 +97,11 @@ export default function ChildDetailPage() {
         <h2 className="text-xl font-bold text-white">{meta.name}</h2>
       </div>
 
+      {/* Developmental Traits — from game sessions */}
+      <div className="mb-2">
+        <h3 className="text-sm font-semibold text-white mb-0.5">Learning Progress</h3>
+        <p className="text-[10px] text-slate-500 mb-3">From play sessions — grows as {meta.name} plays activities</p>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Radar */}
         <div className="lg:col-span-1 flex justify-center">
@@ -109,7 +114,7 @@ export default function ChildDetailPage() {
             <TraitTrendCard
               key={t.trait}
               trait={t.trait}
-              level={t.current_level}
+              level={t.level}
               trend={t.trend}
               confidence={t.confidence}
             />
