@@ -181,6 +181,25 @@ export default function DashboardOverview() {
         ))}
       </div>
 
+      {/* Week in Review */}
+      <motion.button
+        onClick={() => router.push('/dashboard/weekly-report')}
+        className="w-full mb-6 p-4 rounded-xl bg-violet-500/10 border border-violet-500/20 hover:border-violet-500/30 transition-colors text-left"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-xs font-semibold text-violet-400">Week in Review</span>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              See your family&apos;s progress, trait highlights, and AI summaries
+            </p>
+          </div>
+          <span className="text-violet-400 text-lg">&rarr;</span>
+        </div>
+      </motion.button>
+
       {/* Eddie's 12 Principles */}
       <div className="mb-8">
         <h3 className="text-sm font-semibold text-amber-400 mb-1">Eddie&apos;s 12 Principles</h3>

@@ -80,8 +80,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </button>
           ))}
           <button
-            onClick={() => router.push('/dashboard/review')}
+            onClick={() => router.push('/dashboard/weekly-report')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ml-auto ${
+              pathname === '/dashboard/weekly-report' ? 'bg-violet-500/20 text-violet-400' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            Weekly
+          </button>
+          <button
+            onClick={() => router.push('/dashboard/review')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               pathname === '/dashboard/review' ? 'bg-green-500/20 text-green-400' : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
