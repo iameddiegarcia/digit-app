@@ -181,3 +181,117 @@ CROSS JOIN (
          ('responsibility'), ('real_world'), ('adaptability')
 ) AS t(trait)
 ON CONFLICT (child_id, trait) DO NOTHING;
+
+-- ============================================================================
+-- AUTH PROFILES — Phase 2+3
+-- ============================================================================
+
+CREATE TABLE profiles (
+  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+  family_id UUID REFERENCES families(id),
+  role TEXT CHECK (role IN ('parent', 'creator', 'child')) NOT NULL,
+  child_id UUID REFERENCES children(id),  -- null for parent
+  display_name TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- RLS policies for profiles
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can read own profile"
+  ON profiles FOR SELECT
+  USING (auth.uid() = id);
+
+CREATE POLICY "Users can read family profiles"
+  ON profiles FOR SELECT
+  USING (family_id IN (
+    SELECT family_id FROM profiles WHERE id = auth.uid()
+  ));
+
+-- ============================================================================
+-- CREATIONS — Kylie's Creator Studio (L2a)
+-- ============================================================================
+
+CREATE TABLE creations (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  family_id UUID REFERENCES families(id) ON DELETE CASCADE,
+  creator_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  type TEXT CHECK (type IN ('story', 'puzzle', 'activity')) NOT NULL DEFAULT 'story',
+  content JSONB NOT NULL DEFAULT '{}',
+  primary_trait trait_type,
+  target_age_min INTEGER DEFAULT 2,
+  target_age_max INTEGER DEFAULT 5,
+  status TEXT CHECK (status IN ('draft', 'review', 'published')) NOT NULL DEFAULT 'draft',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE creations ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Creators can manage own creations"
+  ON creations FOR ALL
+  USING (creator_id = auth.uid());
+
+CREATE POLICY "Family members can read published creations"
+  ON creations FOR SELECT
+  USING (
+    status = 'published' AND
+    family_id IN (SELECT family_id FROM profiles WHERE id = auth.uid())
+  );
+
+CREATE POLICY "Parents can read all family creations"
+  ON creations FOR SELECT
+  USING (
+    family_id IN (
+      SELECT family_id FROM profiles WHERE id = auth.uid() AND role = 'parent'
+    )
+  );
+
+CREATE POLICY "Parents can update family creations"
+  ON creations FOR UPDATE
+  USING (
+    family_id IN (
+      SELECT family_id FROM profiles WHERE id = auth.uid() AND role = 'parent'
+    )
+  );
+
+-- ============================================================================
+-- ACTIVITY FINDER — Local Event Discovery (L3)
+-- ============================================================================
+
+CREATE TABLE local_activities (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  family_id UUID REFERENCES families(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT,
+  url TEXT,
+  url_hash TEXT UNIQUE,
+  source TEXT,
+  location TEXT,
+  cost TEXT CHECK (cost IN ('free', 'low', 'paid')),
+  cost_amount NUMERIC,
+  age_min INTEGER,
+  age_max INTEGER,
+  primary_trait trait_type,
+  traits trait_type[] DEFAULT '{}',
+  tags TEXT[] DEFAULT '{}',
+  event_date DATE,
+  event_end_date DATE,
+  status TEXT CHECK (status IN ('new', 'pinned', 'dismissed', 'archived')) DEFAULT 'new',
+  discovered_at TIMESTAMPTZ DEFAULT NOW(),
+  classified_at TIMESTAMPTZ,
+  raw_snippet TEXT
+);
+
+CREATE TABLE discovery_jobs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  family_id UUID REFERENCES families(id) ON DELETE CASCADE,
+  status TEXT CHECK (status IN ('running', 'completed', 'failed')) DEFAULT 'running',
+  queries_total INTEGER DEFAULT 0,
+  queries_completed INTEGER DEFAULT 0,
+  activities_found INTEGER DEFAULT 0,
+  started_at TIMESTAMPTZ DEFAULT NOW(),
+  completed_at TIMESTAMPTZ,
+  error TEXT
+);
