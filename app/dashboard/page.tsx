@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ChildOverviewCard } from '@/components/dashboard/ChildOverviewCard'
 import { ActivityFinder } from '@/components/dashboard/ActivityFinder'
+import { WorkplaceAssessment } from '@/components/dashboard/WorkplaceAssessment'
 
 interface ChildData {
   id: string
@@ -22,6 +23,12 @@ interface ReviewCreation {
   created_at: string
 }
 
+interface PrincipleData {
+  score: number
+  week_of: string
+  reflection: string | null
+}
+
 const CHILD_COLORS: Record<string, string> = {
   '00000000-0000-0000-0000-000000000010': '#60A5FA',
   '00000000-0000-0000-0000-000000000020': '#F9A8D4',
@@ -32,6 +39,7 @@ export default function DashboardOverview() {
   const router = useRouter()
   const [children, setChildren] = useState<ChildData[]>([])
   const [reviewQueue, setReviewQueue] = useState<ReviewCreation[]>([])
+  const [workplaceScores, setWorkplaceScores] = useState<Record<string, PrincipleData>>({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -72,6 +80,17 @@ export default function DashboardOverview() {
       if (reviewRes.ok) {
         const data = await reviewRes.json()
         setReviewQueue(data.creations ?? [])
+      }
+
+      // Load Eddie's workplace principles
+      try {
+        const wpRes = await fetch('/api/dashboard/workplace-principles')
+        if (wpRes.ok) {
+          const data = await wpRes.json()
+          setWorkplaceScores(data.latest ?? {})
+        }
+      } catch {
+        /* ignore */
       }
     } catch {
       /* ignore */
@@ -136,6 +155,13 @@ export default function DashboardOverview() {
             index={i}
           />
         ))}
+      </div>
+
+      {/* Eddie's 12 Principles */}
+      <div className="mb-8">
+        <h3 className="text-sm font-semibold text-amber-400 mb-1">Eddie&apos;s 12 Principles</h3>
+        <p className="text-[10px] text-slate-500 mb-3">Weekly self-assessment — lead by example.</p>
+        <WorkplaceAssessment initialScores={workplaceScores} />
       </div>
 
       {/* Activity Finder */}

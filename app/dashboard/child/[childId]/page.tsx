@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { TraitRadar } from '@/components/dashboard/TraitRadar'
+import { CharacterRadar } from '@/components/dashboard/CharacterRadar'
 import { TraitTrendCard } from '@/components/dashboard/TraitTrendCard'
 import { SessionSummaryCard } from '@/components/dashboard/SessionSummaryCard'
 import { ParentObservationForm } from '@/components/dashboard/ParentObservationForm'
+import { CharacterObservationForm } from '@/components/dashboard/CharacterObservationForm'
 import type { Trait } from '@/lib/types'
 
 interface TraitProfile {
@@ -13,6 +15,12 @@ interface TraitProfile {
   current_level: number
   confidence: number
   trend: 'improving' | 'stable' | 'declining'
+}
+
+interface CharacterProfile {
+  trait: string
+  current_level: number
+  observations_count: number
 }
 
 interface SessionData {
@@ -37,6 +45,7 @@ export default function ChildDetailPage() {
   const meta = CHILD_META[childId] ?? { name: 'Child', color: '#60A5FA' }
 
   const [traits, setTraits] = useState<TraitProfile[]>([])
+  const [characterTraits, setCharacterTraits] = useState<CharacterProfile[]>([])
   const [sessions, setSessions] = useState<SessionData[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -46,9 +55,10 @@ export default function ChildDetailPage() {
 
   async function loadData() {
     setLoading(true)
-    const [traitRes, sessionRes] = await Promise.all([
+    const [traitRes, sessionRes, charRes] = await Promise.all([
       fetch(`/api/dashboard/traits?childId=${childId}`),
       fetch(`/api/dashboard/sessions?childId=${childId}&limit=10`),
+      fetch(`/api/dashboard/character-traits?childId=${childId}`),
     ])
 
     if (traitRes.ok) {
@@ -58,6 +68,10 @@ export default function ChildDetailPage() {
     if (sessionRes.ok) {
       const data = await sessionRes.json()
       setSessions(data.sessions ?? [])
+    }
+    if (charRes.ok) {
+      const data = await charRes.json()
+      setCharacterTraits(data.traits ?? [])
     }
     setLoading(false)
   }
@@ -98,6 +112,18 @@ export default function ChildDetailPage() {
               confidence={t.confidence}
             />
           ))}
+        </div>
+      </div>
+
+      {/* Character Formation — Fruit of the Spirit */}
+      <div className="mt-8">
+        <h3 className="text-sm font-semibold text-amber-400 mb-1">Character Formation</h3>
+        <p className="text-[10px] text-slate-500 mb-3">Fruit of the Spirit — Galatians 5:22-23</p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="flex justify-center">
+            <CharacterRadar traits={characterTraits} color={meta.color} size={220} />
+          </div>
+          <CharacterObservationForm childId={childId} onSubmit={loadData} />
         </div>
       </div>
 
