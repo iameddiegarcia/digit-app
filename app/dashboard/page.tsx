@@ -6,6 +6,8 @@ import { motion } from 'framer-motion'
 import { ChildOverviewCard } from '@/components/dashboard/ChildOverviewCard'
 import { ActivityFinder } from '@/components/dashboard/ActivityFinder'
 import { WorkplaceAssessment } from '@/components/dashboard/WorkplaceAssessment'
+import { SpouseAssessment } from '@/components/dashboard/SpouseAssessment'
+import { SpouseReveal } from '@/components/dashboard/SpouseReveal'
 
 interface ChildData {
   id: string
@@ -29,6 +31,16 @@ interface PrincipleData {
   reflection: string | null
 }
 
+interface SpouseData {
+  weekOf: string
+  mine: { ratings: Record<string, number>; grateful_for: string | null; prayer_request: string | null } | null
+  spouseSubmitted: boolean
+  revealed: boolean
+  spouseRatings: Record<string, number> | null
+  spouseGrateful: string | null
+  spousePrayer: string | null
+}
+
 const CHILD_COLORS: Record<string, string> = {
   '00000000-0000-0000-0000-000000000010': '#60A5FA',
   '00000000-0000-0000-0000-000000000020': '#F9A8D4',
@@ -40,6 +52,7 @@ export default function DashboardOverview() {
   const [children, setChildren] = useState<ChildData[]>([])
   const [reviewQueue, setReviewQueue] = useState<ReviewCreation[]>([])
   const [workplaceScores, setWorkplaceScores] = useState<Record<string, PrincipleData>>({})
+  const [spouseData, setSpouseData] = useState<SpouseData | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -88,6 +101,17 @@ export default function DashboardOverview() {
         if (wpRes.ok) {
           const data = await wpRes.json()
           setWorkplaceScores(data.latest ?? {})
+        }
+      } catch {
+        /* ignore */
+      }
+
+      // Load spouse assessment
+      try {
+        const saRes = await fetch('/api/dashboard/spouse-assessment')
+        if (saRes.ok) {
+          const data = await saRes.json()
+          setSpouseData(data)
         }
       } catch {
         /* ignore */
@@ -162,6 +186,43 @@ export default function DashboardOverview() {
         <h3 className="text-sm font-semibold text-amber-400 mb-1">Eddie&apos;s 12 Principles</h3>
         <p className="text-[10px] text-slate-500 mb-3">Weekly self-assessment — lead by example.</p>
         <WorkplaceAssessment initialScores={workplaceScores} />
+      </div>
+
+      {/* Family Values Check-In */}
+      <div className="mb-8">
+        <h3 className="text-sm font-semibold text-rose-400 mb-1">Family Values Check-In</h3>
+        <p className="text-[10px] text-slate-500 mb-3">
+          Weekly Fruit of the Spirit reflection — rate together, reveal together.
+        </p>
+        {spouseData?.revealed && spouseData.mine && spouseData.spouseRatings ? (
+          <SpouseReveal
+            myRatings={spouseData.mine.ratings}
+            spouseRatings={spouseData.spouseRatings}
+            myGrateful={spouseData.mine.grateful_for}
+            spouseGrateful={spouseData.spouseGrateful}
+            myPrayer={spouseData.mine.prayer_request}
+            spousePrayer={spouseData.spousePrayer}
+            myName="Eddie"
+            spouseName="Jazmin"
+          />
+        ) : (
+          <SpouseAssessment
+            existingRatings={spouseData?.mine?.ratings}
+            existingGrateful={spouseData?.mine?.grateful_for}
+            existingPrayer={spouseData?.mine?.prayer_request}
+            onSubmit={async (data) => {
+              const res = await fetch('/api/dashboard/spouse-assessment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+              })
+              if (res.ok) {
+                const saRes = await fetch('/api/dashboard/spouse-assessment')
+                if (saRes.ok) setSpouseData(await saRes.json())
+              }
+            }}
+          />
+        )}
       </div>
 
       {/* Activity Finder */}
